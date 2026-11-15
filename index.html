@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Smart IT Helpdesk Dashboard — manajemen tiket IT perusahaan berbasis web, ringan, tanpa library eksternal."/>
+<meta name="theme-color" content="#0d1b3e"/>
+<meta property="og:title" content="Smart IT Helpdesk Dashboard"/>
+<meta property="og:description" content="Sistem manajemen tiket IT perusahaan — Dashboard, Tiket, Pengaturan."/>
+<meta property="og:type" content="website"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231a56db'/%3E%3Cpath fill='%23fff' d='M22 9h-2.18c.07-.23.18-.45.18-.7A2.3 2.3 0 0 0 17.72 6c-.79 0-1.56.42-2 1.09L14 9.35l-1.72-2.26A2.38 2.38 0 0 0 10.28 6 2.3 2.3 0 0 0 8 8.3c0 .25.11.47.18.7H6C4.9 9 4 9.9 4 11v11c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V11c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E"/>
+<title>Smart IT Helpdesk Dashboard</title>
+<style>
+/* ── RESET & VARS ─────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0d1b3e;
+  --navy-hover:#162550;
+  --blue:#1a56db;
+  --blue-hover:#1446bf;
+  --blue-pale:#eff6ff;
+  --blue-pale2:#dbeafe;
+  --white:#ffffff;
+  --bg:#f1f5fb;
+  --surface:#ffffff;
+  --border:#e2e8f0;
+  --border-light:#f1f5f9;
+  --text:#1e293b;
+  --text-secondary:#475569;
+  --muted:#94a3b8;
+  --green:#16a34a;
+  --green-bg:#f0fdf4;
+  --yellow:#b45309;
+  --yellow-bg:#fffbeb;
+  --red:#dc2626;
+  --red-bg:#fef2f2;
+  --orange:#c2410c;
+  --orange-bg:#fff7ed;
+  --sidebar-w:240px;
+  --header-h:60px;
+  --radius:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);
+}
+
+html{font-size:14px}
+body{
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;
+  color:var(--text);
+  background:var(--bg);
+  display:flex;
+  min-height:100vh;
+  line-height:1.5;
+}
+
+/* ── SCROLLBAR ────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+/* ── SIDEBAR ──────────────────────────────────── */
+#sidebar{
+  width:var(--sidebar-w);
+  background:var(--navy);
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  top:0;left:0;bottom:0;
+  z-index:200;
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+.sidebar-brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:20px 18px 18px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  flex-shrink:0;
+}
+.brand-icon{
+  width:38px;height:38px;
+  background:var(--blue);
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.brand-icon svg{width:20px;height:20px;fill:#fff}
+.brand-name{color:#fff;font-size:15px;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+.brand-sub{display:block;font-size:10.5px;font-weight:400;color:rgba(255,255,255,.4);margin-top:1px;letter-spacing:.01em}
+
+.sidebar-nav{padding:12px 10px;flex:1}
+.nav-section-label{
+  font-size:10px;font-weight:700;
+  color:rgba(255,255,255,.3);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  padding:14px 10px 5px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 11px;
+  border-radius:8px;
+  cursor:pointer;
+  color:rgba(255,255,255,.6);
+  font-size:13.5px;font-weight:500;
+  transition:background .15s,color .15s;
+  margin-bottom:1px;
+  user-select:none;
+}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;fill:currentColor}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9)}
+.nav-item.active{background:var(--blue);color:#fff;font-weight:600}
+.nav-item.active svg{fill:#fff}
+
+.sidebar-footer{
+  padding:14px 18px;
+  border-top:1px solid rgba(255,255,255,.07);
+  font-size:11px;
+  color:rgba(255,255,255,.25);
+  flex-shrink:0;
+}
+
+/* ── MAIN ─────────────────────────────────────── */
+#main{
+  margin-left:var(--sidebar-w);
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  min-width:0;
+}
+
+/* ── HEADER ───────────────────────────────────── */
+header{
+  height:var(--header-h);
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  position:sticky;top:0;z-index:100;
+  gap:12px;
+}
+.header-left{display:flex;align-items:center;gap:10px;min-width:0}
+#menu-toggle{
+  display:none;
+  background:none;border:none;cursor:pointer;
+  padding:6px;border-radius:6px;
+  transition:background .15s;
+  flex-shrink:0;
+}
+#menu-toggle:hover{background:var(--border-light)}
+#menu-toggle svg{width:20px;height:20px;fill:var(--navy);display:block}
+.page-title{
+  font-size:16px;font-weight:700;
+  color:var(--navy);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.header-icon-btn{
+  width:36px;height:36px;
+  border-radius:8px;
+  background:transparent;
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  position:relative;
+  transition:border-color .15s,background .15s;
+}
+.header-icon-btn:hover{background:var(--border-light);border-color:var(--blue-pale2)}
+.header-icon-btn svg{width:17px;height:17px;fill:var(--text-secondary)}
+.notif-badge{
+  position:absolute;top:-5px;right:-5px;
+  min-width:16px;height:16px;
+  border-radius:99px;
+  background:var(--red);color:#fff;
+  font-size:9px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 3px;
+  border:2px solid #fff;
+}
+
+.header-divider{width:1px;height:28px;background:var(--border);margin:0 2px}
+
+.profile-pill{
+  display:flex;align-items:center;gap:9px;
+  padding:5px 10px 5px 5px;
+  border-radius:99px;
+  border:1px solid var(--border);
+  cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.profile-pill:hover{border-color:var(--blue-pale2);background:var(--blue-pale)}
+.avatar{
+  width:30px;height:30px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--blue) 0%,var(--navy) 100%);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:11px;flex-shrink:0;
+  letter-spacing:.03em;
+}
+.profile-info{line-height:1.25}
+.profile-name{font-weight:600;font-size:12.5px;color:var(--text)}
+.profile-role{font-size:10.5px;color:var(--muted)}
+
+/* ── PAGES ────────────────────────────────────── */
+.page{display:none;padding:24px;animation:fadeIn .2s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STAT CARDS ───────────────────────────────── */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-bottom:20px;
+}
+.stat-card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px 20px;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:var(--shadow);
+  transition:box-shadow .15s,transform .15s;
+}
+.stat-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.stat-icon{
+  width:46px;height:46px;
+  border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.stat-icon svg{width:22px;height:22px}
+.si-blue{background:var(--blue-pale)}
+.si-blue svg{fill:var(--blue)}
+.si-yellow{background:var(--yellow-bg)}
+.si-yellow svg{fill:#d97706}
+.si-orange{background:var(--orange-bg)}
+.si-orange svg{fill:var(--orange)}
+.si-green{background:var(--green-bg)}
+.si-green svg{fill:var(--green)}
+.stat-body{}
+.stat-num{font-size:28px;font-weight:800;color:var(--text);line-height:1;letter-spacing:-.02em}
+.stat-label{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap}
+.stat-trend{font-size:11px;color:var(--green);margin-top:4px;font-weight:500}
+
+/* ── CARD ─────────────────────────────────────── */
+.card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.card+.card{margin-top:20px}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;
+  border-bottom:1px solid var(--border-light);
+  gap:12px;
+}
+.card-title{font-weight:700;font-size:14.5px;color:var(--text)}
+.card-body{padding:20px}
+.card-body-sm{padding:16px 20px}
+
+/* ── BUTTONS ──────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 14px;
+  border-radius:7px;border:none;
+  font-size:12.5px;font-weight:600;
+  cursor:pointer;
+  transition:background .15s,opacity .15s,transform .1s;
+  white-space:nowrap;
+  font-family:inherit;
+  line-height:1.4;
+}
+.btn:active{transform:scale(.97)}
+.btn svg{width:14px;height:14px;fill:currentColor;flex-shrink:0}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-hover)}
+.btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--border-light);border-color:var(--blue-pale2)}
+.btn-sm{padding:5px 11px;font-size:12px}
+
+/* ── TOOLBAR ──────────────────────────────────── */
+.toolbar{
+  display:flex;align-items:center;gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.search-box{
+  position:relative;
+  flex:1;min-width:200px;
+}
+.search-box svg{
+  position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  width:15px;height:15px;fill:var(--muted);pointer-events:none;
+}
+.search-box input{
+  width:100%;
+  padding:8px 12px 8px 34px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  font-size:13px;color:var(--text);
+  background:var(--bg);
+  outline:none;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+  font-family:inherit;
+}
+.search-box input:focus{
+  border-color:var(--blue);
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(26,86,219,.08);
+}
+.select-filter{
+  padding:8px 32px 8px 12px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  font-size:12.5px;color:var(--text);
+  background:var(--bg);
+  outline:none;cursor:pointer;
+  font-family:inherit;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2394a3b8'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 9px center;
+  transition:border-color .15s,background-color .15s;
+}
+.select-filter:focus{border-color:var(--blue);background-color:#fff;box-shadow:0 0 0 3px rgba(26,86,219,.08)}
+
+/* ── TABLE ────────────────────────────────────── */
+.table-wrap{overflow-x:auto;border-radius:0 0 var(--radius) var(--radius)}
+table{width:100%;border-collapse:collapse;min-width:600px}
+thead tr{background:var(--bg)}
+thead th{
+  padding:10px 14px;
+  text-align:left;
+  font-size:11px;font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+thead th:first-child{border-radius:0 0 0 0}
+tbody tr{
+  border-bottom:1px solid var(--border-light);
+  transition:background .1s;
+}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--blue-pale)}
+tbody td{
+  padding:11px 14px;
+  font-size:13px;
+  vertical-align:middle;
+  color:var(--text);
+}
+.td-id{font-family:"Courier New",monospace;font-weight:700;font-size:12px;color:var(--blue)}
+.td-title{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.td-muted{color:var(--text-secondary);font-size:12.5px}
+.td-date{color:var(--muted);font-size:12px;white-space:nowrap}
+
+/* ── BADGES ───────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;
+  border-radius:99px;
+  font-size:11px;font-weight:600;white-space:nowrap;
+}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.badge-open{background:var(--yellow-bg);color:var(--yellow)}
+.badge-open::before{background:#d97706}
+.badge-progress{background:var(--blue-pale);color:var(--blue)}
+.badge-progress::before{background:var(--blue)}
+.badge-closed{background:var(--green-bg);color:var(--green)}
+.badge-closed::before{background:var(--green)}
+
+.priority-wrap{display:flex;align-items:center;gap:5px;font-size:12.5px}
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pdot-high{background:var(--red)}
+.pdot-medium{background:#d97706}
+.pdot-low{background:var(--green)}
+
+/* ── STATUS SELECT ────────────────────────────── */
+.status-sel{
+  padding:5px 26px 5px 9px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  font-size:12px;
+  background:var(--bg);
+  cursor:pointer;outline:none;
+  font-family:inherit;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='%2394a3b8'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 7px center;
+  transition:border-color .15s;
+}
+.status-sel:focus{border-color:var(--blue);background-color:#fff}
+
+/* ── FORM ─────────────────────────────────────── */
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px 18px;
+}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+.fg label{
+  font-size:11.5px;font-weight:600;
+  color:var(--text-secondary);
+  letter-spacing:.01em;
+}
+.fg input,
+.fg select,
+.fg textarea{
+  padding:8px 11px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  font-size:13px;color:var(--text);
+  background:var(--bg);
+  outline:none;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+  font-family:inherit;
+}
+.fg input:focus,
+.fg select:focus,
+.fg textarea:focus{
+  border-color:var(--blue);
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(26,86,219,.08);
+}
+.fg textarea{resize:vertical;min-height:76px;line-height:1.5}
+.form-actions{margin-top:18px;display:flex;gap:9px;align-items:center}
+
+/* ── SETTINGS ─────────────────────────────────── */
+.settings-block{margin-bottom:26px}
+.settings-block:last-child{margin-bottom:0}
+.settings-block-title{
+  font-size:13px;font-weight:700;color:var(--navy);
+  padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:0;
+}
+.setting-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;
+  border-bottom:1px solid var(--border-light);
+  gap:16px;
+}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:13px;font-weight:500;color:var(--text)}
+.setting-desc{font-size:11.5px;color:var(--muted);margin-top:1px}
+.toggle{
+  width:38px;height:21px;border-radius:99px;
+  background:var(--border);
+  border:none;cursor:pointer;
+  position:relative;flex-shrink:0;
+  transition:background .2s;
+}
+.toggle::after{
+  content:'';
+  position:absolute;top:3px;left:3px;
+  width:15px;height:15px;border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+  transition:transform .2s;
+}
+.toggle.on{background:var(--blue)}
+.toggle.on::after{transform:translateX(17px)}
+
+/* ── EMPTY STATE ──────────────────────────────── */
+.empty-state{
+  text-align:center;padding:40px 20px;color:var(--muted);
+}
+.empty-state svg{width:36px;height:36px;fill:var(--border);margin-bottom:10px}
+.empty-state p{font-size:13px}
+
+/* ── TOAST ────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--navy);color:#fff;
+  padding:11px 18px;border-radius:9px;
+  font-size:12.5px;font-weight:500;
+  box-shadow:0 6px 24px rgba(13,27,62,.2);
+  opacity:0;transform:translateY(8px) scale(.97);
+  transition:opacity .22s,transform .22s;
+  z-index:9999;pointer-events:none;
+  max-width:300px;
+}
+#toast.show{opacity:1;transform:translateY(0) scale(1)}
+
+/* ── OVERLAY (mobile) ─────────────────────────── */
+#overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(13,27,62,.4);
+  z-index:199;
+  backdrop-filter:blur(2px);
+}
+#overlay.show{display:block}
+
+/* ── RESPONSIVE ───────────────────────────────── */
+@media(max-width:1100px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #main{margin-left:0}
+  #menu-toggle{display:flex}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .form-grid{grid-template-columns:1fr}
+  .page{padding:16px}
+  .card-body{padding:16px}
+  .toolbar{gap:6px}
+  .search-box{min-width:140px}
+  .profile-info{display:none}
+  .header-divider{display:none}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .stat-num{font-size:22px}
+  header{padding:0 14px}
+}
+</style>
+</head>
+<body>
+
+<div id="overlay"></div>
+
+<!-- ══ SIDEBAR ══════════════════════════════════ -->
+<aside id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.23.18-.45.18-.7A2.3 2.3 0 0 0 15.72 3c-.79 0-1.56.42-2 1.09L12 6.35l-1.72-2.26A2.38 2.38 0 0 0 8.28 3 2.3 2.3 0 0 0 6 5.3c0 .25.11.47.18.7H4C2.9 6 2 6.9 2 8v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7.46 11.5H11v-1.5H8v-2h3V13H8v-2h3v-1.5h1.54L14.5 12l-1.96 2.5 1.96 2.5-1.96 2.5zM18 16h-3v-2h3v2z"/></svg>
+    </div>
+    <div class="brand-name">SmartDesk<span class="brand-sub">IT Helpdesk System</span></div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Menu Utama</div>
+    <div class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" data-page="tickets">
+      <svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-2-1.46c-1.19.69-2 1.99-2 3.46s.81 2.77 2 3.46V18H4v-2.54c1.19-.69 2-1.99 2-3.46s-.81-2.77-2-3.46V6h16v2.54z"/></svg>
+      Tiket
+    </div>
+    <div class="nav-section-label">Sistem</div>
+    <div class="nav-item" data-page="settings">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      Pengaturan
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">v1.0.0 &bull; IT Division &copy; 2026</div>
+</aside>
+
+<!-- ══ MAIN ══════════════════════════════════════ -->
+<div id="main">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <button id="menu-toggle" aria-label="Buka menu">
+        <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </button>
+      <span class="page-title" id="header-title">Dashboard</span>
+    </div>
+    <div class="header-right">
+      <div class="header-icon-btn" title="Notifikasi">
+        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="notif-badge" id="notif-count">0</span>
+      </div>
+      <div class="header-divider"></div>
+      <div class="profile-pill">
+        <div class="avatar">AD</div>
+        <div class="profile-info">
+          <div class="profile-name">Admin IT</div>
+          <div class="profile-role">System Administrator</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ PAGE: DASHBOARD ══ -->
+  <section class="page active" id="page-dashboard">
+
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Tiket Terbaru</span>
+        <button class="btn btn-primary btn-sm" onclick="navigate('tickets')">
+          <svg viewBox="0 0 24 24"><path d="M15 5l-1.41 1.41L18.17 11H2v2h16.17l-4.59 4.59L15 19l7-7z"/></svg>
+          Lihat Semua
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID Tiket</th>
+              <th>Judul Masalah</th>
+              <th>Pelapor</th>
+              <th>Prioritas</th>
+              <th>Status</th>
+              <th>Tanggal</th>
+            </tr>
+          </thead>
+          <tbody id="recent-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ══ PAGE: TIKET ══ -->
+  <section class="page" id="page-tickets">
+
+    <!-- Form Tambah Tiket -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Tambah Tiket Baru</span>
+        <button class="btn btn-ghost btn-sm" id="toggle-form-btn" onclick="toggleForm()">
+          <svg id="toggle-form-icon" viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+          Sembunyikan
+        </button>
+      </div>
+      <div id="ticket-form-wrap">
+        <div class="card-body">
+          <form id="ticket-form" autocomplete="off">
+            <div class="form-grid">
+              <div class="fg">
+                <label>Judul Masalah <span style="color:var(--red)">*</span></label>
+                <input type="text" id="f-title" placeholder="Contoh: Printer tidak bisa print" required/>
+              </div>
+              <div class="fg">
+                <label>Nama Pelapor <span style="color:var(--red)">*</span></label>
+                <input type="text" id="f-reporter" placeholder="Nama lengkap" required/>
+              </div>
+              <div class="fg">
+                <label>Departemen</label>
+                <select id="f-dept">
+                  <option>Keuangan</option><option>HRD</option><option>IT</option>
+                  <option>Marketing</option><option>Operasional</option><option>Manajemen</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label>Kategori</label>
+                <select id="f-category">
+                  <option>Hardware</option><option>Software</option><option>Jaringan</option>
+                  <option>Akun &amp; Akses</option><option>Lainnya</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label>Prioritas</label>
+                <select id="f-priority">
+                  <option value="low">Rendah</option>
+                  <option value="medium" selected>Sedang</option>
+                  <option value="high">Tinggi</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label>Status Awal</label>
+                <select id="f-status">
+                  <option value="open">Terbuka</option>
+                  <option value="in-progress">Dalam Proses</option>
+                </select>
+              </div>
+              <div class="fg full">
+                <label>Deskripsi Masalah</label>
+                <textarea id="f-desc" placeholder="Jelaskan masalah secara detail..."></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg>
+                Simpan Tiket
+              </button>
+              <button type="reset" class="btn btn-ghost">Reset Form</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daftar Tiket -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Daftar Tiket</span>
+        <span id="ticket-count-label" style="font-size:12px;color:var(--muted);font-weight:500"></span>
+      </div>
+      <div class="card-body-sm">
+        <div class="toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input type="text" id="search-input" placeholder="Cari ID, judul, atau pelapor..."/>
+          </div>
+          <select class="select-filter" id="filter-status">
+            <option value="">Semua Status</option>
+            <option value="open">Terbuka</option>
+            <option value="in-progress">Dalam Proses</option>
+            <option value="closed">Selesai</option>
+          </select>
+          <select class="select-filter" id="filter-priority">
+            <option value="">Semua Prioritas</option>
+            <option value="high">Tinggi</option>
+            <option value="medium">Sedang</option>
+            <option value="low">Rendah</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Judul Masalah</th>
+              <th>Pelapor</th>
+              <th>Departemen</th>
+              <th>Kategori</th>
+              <th>Prioritas</th>
+              <th>Status</th>
+              <th>Tanggal</th>
+            </tr>
+          </thead>
+          <tbody id="ticket-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ══ PAGE: SETTINGS ══ -->
+  <section class="page" id="page-settings">
+    <div class="card" style="max-width:660px">
+      <div class="card-header">
+        <span class="card-title">Pengaturan Sistem</span>
+      </div>
+      <div class="card-body">
+
+        <div class="settings-block">
+          <div class="settings-block-title">Profil Admin</div>
+          <div class="form-grid" style="margin-top:14px;margin-bottom:16px">
+            <div class="fg">
+              <label>Nama Admin</label>
+              <input type="text" value="Admin IT"/>
+            </div>
+            <div class="fg">
+              <label>Email</label>
+              <input type="email" value="admin@company.co.id"/>
+            </div>
+            <div class="fg">
+              <label>Jabatan</label>
+              <input type="text" value="System Administrator"/>
+            </div>
+            <div class="fg">
+              <label>Divisi</label>
+              <input type="text" value="IT Division"/>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="showToast('✓ Profil berhasil disimpan')">Simpan Perubahan</button>
+        </div>
+
+        <div class="settings-block" style="margin-top:22px">
+          <div class="settings-block-title">Notifikasi</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Notifikasi Tiket Baru</div>
+              <div class="setting-desc">Terima notifikasi saat ada tiket masuk baru</div>
+            </div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Notifikasi Status Berubah</div>
+              <div class="setting-desc">Terima notifikasi saat status tiket diperbarui</div>
+            </div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Peringatan Prioritas Tinggi</div>
+              <div class="setting-desc">Alert khusus untuk tiket berprioritas tinggi</div>
+            </div>
+            <button class="toggle" onclick="this.classList.toggle('on')"></button>
+          </div>
+        </div>
+
+        <div class="settings-block" style="margin-top:22px">
+          <div class="settings-block-title">Tampilan</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Tampilkan Kolom Departemen</div>
+              <div class="setting-desc">Tampilkan kolom departemen pada tabel tiket</div>
+            </div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Tampilan Tabel Padat</div>
+              <div class="setting-desc">Kurangi jarak baris tabel agar lebih ringkas</div>
+            </div>
+            <button class="toggle" onclick="this.classList.toggle('on')"></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div><!-- /main -->
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA SIMULASI
+// ══════════════════════════════════════════════
+let tickets = [
+  { id:'TKT-001', title:'Printer tidak bisa print', reporter:'Budi Santoso',   dept:'Keuangan',   category:'Hardware',     priority:'high',   status:'open',        date:'2026-11-10' },
+  { id:'TKT-002', title:'Email tidak bisa kirim',   reporter:'Siti Rahayu',    dept:'HRD',        category:'Software',     priority:'medium', status:'in-progress', date:'2026-11-11' },
+  { id:'TKT-003', title:'Koneksi WiFi lemot',        reporter:'Ahmad Fauzi',    dept:'Marketing',  category:'Jaringan',     priority:'medium', status:'open',        date:'2026-11-11' },
+  { id:'TKT-004', title:'Komputer tidak mau menyala',reporter:'Dewi Lestari',  dept:'Operasional',category:'Hardware',     priority:'high',   status:'closed',      date:'2026-11-09' },
+  { id:'TKT-005', title:'Reset password akun domain',reporter:'Roni Hidayat',  dept:'Manajemen',  category:'Akun & Akses', priority:'low',    status:'closed',      date:'2026-11-08' },
+  { id:'TKT-006', title:'Aplikasi kasir crash',      reporter:'Yuliana Putri', dept:'Keuangan',   category:'Software',     priority:'high',   status:'in-progress', date:'2026-11-12' },
+  { id:'TKT-007', title:'Monitor bergaris',          reporter:'Hendra Wijaya', dept:'IT',         category:'Hardware',     priority:'low',    status:'open',        date:'2026-11-12' },
+  { id:'TKT-008', title:'VPN tidak bisa konek',      reporter:'Nita Anggraini',dept:'HRD',        category:'Jaringan',     priority:'medium', status:'open',        date:'2026-11-13' },
+  { id:'TKT-009', title:'Install software Zoom',     reporter:'Bagus Firmansyah',dept:'Marketing',category:'Software',    priority:'low',    status:'closed',      date:'2026-11-07' },
+  { id:'TKT-010', title:'Keyboard tidak responsif',  reporter:'Lina Susanti',  dept:'Operasional',category:'Hardware',     priority:'medium', status:'closed',      date:'2026-11-06' },
+];
+
+let formVisible = true;
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+const navItems    = document.querySelectorAll('.nav-item');
+const pages       = document.querySelectorAll('.page');
+const headerTitle = document.getElementById('header-title');
+const pageTitles  = { dashboard:'Dashboard', tickets:'Tiket', settings:'Pengaturan' };
+
+function navigate(id) {
+  navItems.forEach(n => n.classList.toggle('active', n.dataset.page === id));
+  pages.forEach(p   => p.classList.toggle('active', p.id === 'page-' + id));
+  headerTitle.textContent = pageTitles[id] || id;
+  closeSidebar();
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'tickets')   renderTickets();
+}
+navItems.forEach(n => n.addEventListener('click', () => navigate(n.dataset.page)));
+
+// Mobile sidebar
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+document.getElementById('menu-toggle').addEventListener('click', () => {
+  sidebar.classList.add('open');
+  overlay.classList.add('show');
+});
+overlay.addEventListener('click', closeSidebar);
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+const MONTHS = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+
+function fmtDate(d) {
+  const [y,m,day] = d.split('-');
+  return `${+day} ${MONTHS[+m]} ${y}`;
+}
+
+function statusBadge(s) {
+  const cfg = {
+    'open':        ['badge-open',     'Terbuka'],
+    'in-progress': ['badge-progress', 'Dalam Proses'],
+    'closed':      ['badge-closed',   'Selesai'],
+  };
+  const [cls, lbl] = cfg[s] || ['', s];
+  return `<span class="badge ${cls}">${lbl}</span>`;
+}
+
+function priorityHtml(p) {
+  const lbl = { high:'Tinggi', medium:'Sedang', low:'Rendah' };
+  return `<span class="priority-wrap"><span class="pdot pdot-${p}"></span>${lbl[p]||p}</span>`;
+}
+
+function nextId() {
+  const max = tickets.reduce((m,t) => Math.max(m, parseInt(t.id.slice(4), 10)), 0);
+  return 'TKT-' + String(max + 1).padStart(3, '0');
+}
+
+function updateNotifBadge() {
+  const count = tickets.filter(t => t.status === 'open').length;
+  const el = document.getElementById('notif-count');
+  el.textContent = count;
+  el.style.display = count ? 'flex' : 'none';
+}
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const total  = tickets.length;
+  const open   = tickets.filter(t => t.status === 'open').length;
+  const prog   = tickets.filter(t => t.status === 'in-progress').length;
+  const closed = tickets.filter(t => t.status === 'closed').length;
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon si-blue">
+        <svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg>
+      </div>
+      <div class="stat-body">
+        <div class="stat-num">${total}</div>
+        <div class="stat-label">Total Tiket</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-yellow">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+      </div>
+      <div class="stat-body">
+        <div class="stat-num">${open}</div>
+        <div class="stat-label">Tiket Terbuka</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-orange">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      </div>
+      <div class="stat-body">
+        <div class="stat-num">${prog}</div>
+        <div class="stat-label">Dalam Proses</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-green">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      <div class="stat-body">
+        <div class="stat-num">${closed}</div>
+        <div class="stat-label">Tiket Selesai</div>
+      </div>
+    </div>`;
+
+  const recent = [...tickets].sort((a,b) => b.date.localeCompare(a.date)).slice(0,5);
+  const tbody  = document.getElementById('recent-tbody');
+  tbody.innerHTML = recent.map(t => `
+    <tr>
+      <td class="td-id">${t.id}</td>
+      <td class="td-title" title="${t.title}">${t.title}</td>
+      <td class="td-muted">${t.reporter}</td>
+      <td>${priorityHtml(t.priority)}</td>
+      <td>${statusBadge(t.status)}</td>
+      <td class="td-date">${fmtDate(t.date)}</td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════
+//  TICKET TABLE
+// ══════════════════════════════════════════════
+function renderTickets() {
+  const q  = document.getElementById('search-input').value.toLowerCase().trim();
+  const fs = document.getElementById('filter-status').value;
+  const fp = document.getElementById('filter-priority').value;
+
+  const list = tickets.filter(t => {
+    const mq = !q || t.id.toLowerCase().includes(q) || t.title.toLowerCase().includes(q) || t.reporter.toLowerCase().includes(q);
+    return mq && (!fs || t.status === fs) && (!fp || t.priority === fp);
+  });
+
+  document.getElementById('ticket-count-label').textContent =
+    list.length === tickets.length
+      ? `${tickets.length} tiket`
+      : `${list.length} dari ${tickets.length} tiket`;
+
+  const tbody = document.getElementById('ticket-tbody');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="8">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <p>Tidak ada tiket yang sesuai filter.</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(t => `
+    <tr>
+      <td class="td-id">${t.id}</td>
+      <td class="td-title" title="${t.title}">${t.title}</td>
+      <td class="td-muted">${t.reporter}</td>
+      <td class="td-muted">${t.dept}</td>
+      <td class="td-muted">${t.category}</td>
+      <td>${priorityHtml(t.priority)}</td>
+      <td>
+        <select class="status-sel" data-id="${t.id}" onchange="changeStatus(this)">
+          <option value="open"        ${t.status==='open'        ?'selected':''}>Terbuka</option>
+          <option value="in-progress" ${t.status==='in-progress' ?'selected':''}>Dalam Proses</option>
+          <option value="closed"      ${t.status==='closed'      ?'selected':''}>Selesai</option>
+        </select>
+      </td>
+      <td class="td-date">${fmtDate(t.date)}</td>
+    </tr>`).join('');
+}
+
+function changeStatus(sel) {
+  const t = tickets.find(x => x.id === sel.dataset.id);
+  if (!t) return;
+  t.status = sel.value;
+  const labels = { open:'Terbuka', 'in-progress':'Dalam Proses', closed:'Selesai' };
+  showToast(`Status ${t.id} → ${labels[t.status]}`);
+  updateNotifBadge();
+}
+
+document.getElementById('search-input').addEventListener('input', renderTickets);
+document.getElementById('filter-status').addEventListener('change', renderTickets);
+document.getElementById('filter-priority').addEventListener('change', renderTickets);
+
+// ══════════════════════════════════════════════
+//  FORM TAMBAH TIKET
+// ══════════════════════════════════════════════
+document.getElementById('ticket-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const today = new Date().toISOString().slice(0, 10);
+  tickets.unshift({
+    id:       nextId(),
+    title:    document.getElementById('f-title').value.trim(),
+    reporter: document.getElementById('f-reporter').value.trim(),
+    dept:     document.getElementById('f-dept').value,
+    category: document.getElementById('f-category').value,
+    priority: document.getElementById('f-priority').value,
+    status:   document.getElementById('f-status').value,
+    date:     today,
+  });
+  this.reset();
+  renderTickets();
+  updateNotifBadge();
+  showToast('✓ Tiket ' + tickets[0].id + ' berhasil ditambahkan');
+});
+
+function toggleForm() {
+  formVisible = !formVisible;
+  const wrap = document.getElementById('ticket-form-wrap');
+  const btn  = document.getElementById('toggle-form-btn');
+  const icon = document.getElementById('toggle-form-icon');
+  wrap.style.display = formVisible ? '' : 'none';
+  btn.lastChild.textContent = formVisible ? ' Sembunyikan' : ' Tampilkan Form';
+  icon.innerHTML = formVisible
+    ? '<path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>'
+    : '<path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>';
+}
+
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
+let _toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+renderDashboard();
+renderTickets();
+updateNotifBadge();
+</script>
+</body>
+</html>
